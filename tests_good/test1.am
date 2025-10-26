@@ -1,0 +1,35 @@
+.extern EXT1
+.extern EXT2
+.entry START
+.entry MSG
+.entry COUNT
+START: mov #5, r3
+mov K, r1
+cmp r1, r2
+add r1, r2
+sub r2, COUNT
+lea SRC, r0
+clr r4
+not r5
+inc r6
+dec COUNT
+jmp &LOOP
+bne &EXIT
+jsr &FUNC
+red r7
+prn #-5
+rts
+stop
+mov EXT1, r0
+jsr EXT2
+LOOP: inc r2
+dec COUNT
+add r2, r7
+bne &EXIT
+FUNC: mov r3, r4
+rts
+EXIT: prn #0
+SRC: .string "abcd"
+MSG: .string "Hello, World!"
+COUNT: .data 10, -3, +7, 0
+K: .data 1, 2, 3

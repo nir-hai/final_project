@@ -1,0 +1,46 @@
+; good2: more legal coverage — externs, entries, macro, relative/direct, regs
+
+mcro twox
+    inc r6
+    inc r6
+mcroend
+
+.extern EXTA
+.extern EXTB
+
+.entry START2
+.entry STR2
+.entry ARR
+
+START2:    lea   ARR, r0
+           mov   #3, r1
+           add   r1, r0
+           cmp   ARR, r1
+           prn   #1
+           mov   EXTA, r2
+           jsr   EXTB
+           bne   LOOP
+           red   r7
+           prn   ARR
+           jsr   FUNC2
+           rts
+
+LOOP:    mov   r0, r3
+           inc   r3
+           dec   r3
+           jmp   &AFTER
+
+AFTER:     twox
+           clr   ARR
+           bne   &END
+           mov   r3, r4
+           rts
+
+FUNC2:     mov   r3, r4
+           rts
+
+END:       stop
+
+ARR:       .data  -1, 0, 7, 8, +15
+STR2:      .string "Good 2!"
+COUNT2:    .data  5

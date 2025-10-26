@@ -1,0 +1,3 @@
+mcro mov
+  rts
+mcroend

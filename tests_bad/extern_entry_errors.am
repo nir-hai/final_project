@@ -1,0 +1,11 @@
+.extern EXT1 extra
+.extern 9BAD
+.extern
+.extern X
+.entry START extra
+.entry BAD$NAME
+.entry
+.entry X
+.entry UNDEF
+START: stop
+MAIN: jmp &X
