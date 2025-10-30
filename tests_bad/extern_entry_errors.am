@@ -2,6 +2,7 @@
 .extern 9BAD
 .extern
 .extern X
+.extern X
 .entry START extra
 .entry BAD$NAME
 .entry

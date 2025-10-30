@@ -3,6 +3,7 @@
 .extern 9BAD               ;  illegal extern name 
 .extern                    ; missing extern name 
 .extern X                  ; 
+.extern X
 
 .entry START extra         ;  extra stuff after entry name 
 .entry BAD$NAME            ;  illegal entry name (invalid char) 

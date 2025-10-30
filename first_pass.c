@@ -141,28 +141,32 @@ static int addr_mode(const char *operand)
 
 static void split_ops(const char *b, char *o1, char *o2)
 {
-    int index;
+    int i;
 
-    while (*b && !isspace((unsigned char)*b))
-        ++b; /* skip the instruction name */
-    while (*b && isspace((unsigned char)*b))
-        ++b; /* skip spaces after instruction */
+    while (*b && !isspace((unsigned char)*b)) ++b;   /* skip mnemonic */
+    while (*b &&  isspace((unsigned char)*b)) ++b;   /* spaces after */
 
-    index = 0;
+    /* first operand */
+    i = 0;
+    while (*b && *b != ',' && !isspace((unsigned char)*b) && i < 30)
+        o1[i++] = *b++;
+    o1[i] = '\0';
 
-    /* get first operand until comma or space */
-    while (*b && *b != ',' && !isspace((unsigned char)*b) && index < 30)
-        o1[index++] = *b++;
-    o1[index] = '\0';
+    /* skip spaces */
+    while (*b && isspace((unsigned char)*b)) ++b;
 
-    while (*b && (*b == ',' || isspace((unsigned char)*b)))
-        ++b; /* skip comma and spaces */
+    /* if there isn't a comma -> no second operand */
+    if (*b != ',') { o2[0] = '\0'; return; }
 
-    index = 0;
-    /* now get second operand */
-    while (*b && !isspace((unsigned char)*b) && index < 30)
-        o2[index++] = *b++;
-    o2[index] = '\0';
+    /* comma */
+    ++b;
+    while (*b && isspace((unsigned char)*b)) ++b;
+
+    /* second operand */
+    i = 0;
+    while (*b && *b != ',' && !isspace((unsigned char)*b) && i < 30)
+        o2[i++] = *b++;
+    o2[i] = '\0';
 }
 
 /* Check if name is reserved (opcode or register) */
@@ -191,7 +195,6 @@ void first_pass(const char *am)
     FILE *src; 
     int IC = 100, DC = 0; /* IC = Instruction Counter starts at 100, DC = Data Counter starts at 0 */
     char line[81]; /* line buffer */
-    int current_source_line = 0;
     int ln = 0; /* line number */
     char label[31]; /* label buffer */
     int has_lab; /* 1=has label, 0=no label, -1=label too long */
@@ -219,13 +222,6 @@ void first_pass(const char *am)
     while (fgets(line, sizeof line, src))
     {
         ++ln;
-        if (strncmp(line, "; SRCLINE ", 10) == 0) {
-            current_source_line = atoi(line + 10);
-            continue;  // Skip processing this comment line
-        }
-        if (current_source_line == 0) {
-            current_source_line = ln;  // Default to current line if no SRCLINE found
-        }
         /* we remove newline for more cleaner error messages */
         line[strcspn(line, "\r\n")] = '\0';
 
@@ -241,13 +237,13 @@ void first_pass(const char *am)
 
         if (has_lab == -1)
         { /* label correctness validation */
-            printf("ERROR in line %d: label too long (over 30 characters): \"%s\"\n", current_source_line, line);
+            printf("ERROR in line %d: label too long (over 30 characters): \"%s\"\n", ln, line);
             first_pass_errors++;
             continue;
         }
         else if (!has_lab && strchr(line, ':'))
         {
-            printf("ERROR in line %d: invalid label format: \"%s\"\n", current_source_line, line);
+            printf("ERROR in line %d: invalid label format: \"%s\"\n", ln, line);
             first_pass_errors++;
             continue;
         }
@@ -281,7 +277,7 @@ void first_pass(const char *am)
             /* Check for reserved names */
             if (is_reserved_name(label))
             {
-                printf("ERROR: in line %d: label is conflicts with reserved name: \"%s\"\n", current_source_line, line);
+                printf("ERROR: in line %d: label is conflicts with reserved name: \"%s\"\n", ln, line);
                 first_pass_errors++;
                 continue;
             }

@@ -277,7 +277,6 @@ int pre_assembler_main(const char *in_path) {
             
             found = find_macro(macro_word);
             if (found != NULL) {
-                fprintf(out_file, "; SRCLINE %d\n", line_no);  // Add this line
                 if (colon) {
                     /* Write label part first WITHOUT newline */
                     fwrite(processed_line, 1, (size_t)(colon - processed_line + 1), out_file);
@@ -393,7 +392,6 @@ int pre_assembler_main(const char *in_path) {
         }
 
         /* normal line - just forward to .am */
-        fprintf(out_file, "; SRCLINE %d\n", line_no);  // Add this line
         fputs(processed_line, out_file);
         fputc('\n', out_file);       
     }

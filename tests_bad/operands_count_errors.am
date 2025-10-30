@@ -1,0 +1,7 @@
+mov r1
+add r1, r2, r3
+prn
+red r3, r4
+rts r0
+stop r7
+jsr
