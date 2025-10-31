@@ -6,3 +6,7 @@ red r3, r4
 rts r0                 
 stop r7                
 jsr                    
+mov r1, 
+add ,r2 
+add r1,,r2 
+prn , / red , r3 / add r1 , , r2

@@ -1,0 +1,4 @@
+.string "hello
+.data +
+.data #
+.data 12 x

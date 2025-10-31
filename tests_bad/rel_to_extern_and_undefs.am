@@ -1,0 +1,5 @@
+.extern EXT
+MAIN: jmp &EXT
+mov X,r1
+jmp &Y
+stop

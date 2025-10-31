@@ -141,32 +141,32 @@ static int addr_mode(const char *operand)
 
 static void split_ops(const char *b, char *o1, char *o2)
 {
-    int i;
+    int index;
 
-    while (*b && !isspace((unsigned char)*b)) ++b;   /* skip mnemonic */
-    while (*b &&  isspace((unsigned char)*b)) ++b;   /* spaces after */
+    while (*b && !isspace((unsigned char)*b))
+        ++b; /* skip the instruction name */
+    while (*b && isspace((unsigned char)*b))
+        ++b; /* skip spaces after instruction */
 
-    /* first operand */
-    i = 0;
-    while (*b && *b != ',' && !isspace((unsigned char)*b) && i < 30)
-        o1[i++] = *b++;
-    o1[i] = '\0';
+    index = 0;
 
-    /* skip spaces */
-    while (*b && isspace((unsigned char)*b)) ++b;
-
-    /* if there isn't a comma -> no second operand */
-    if (*b != ',') { o2[0] = '\0'; return; }
-
-    /* comma */
-    ++b;
-    while (*b && isspace((unsigned char)*b)) ++b;
-
-    /* second operand */
-    i = 0;
-    while (*b && *b != ',' && !isspace((unsigned char)*b) && i < 30)
-        o2[i++] = *b++;
-    o2[i] = '\0';
+    /* get first operand until comma or space */
+    while (*b && *b != ',' && !isspace((unsigned char)*b) && index < 30)
+        o1[index++] = *b++;
+    o1[index] = '\0';
+    while (*b && isspace((unsigned char)*b))
+        ++b; 
+    if (*b == ',') {
+        ++b;
+        while (*b && isspace((unsigned char)*b))
+            ++b;
+        index = 0;
+        while( *b && *b != ',' && !isspace((unsigned char)*b) && index < 30)
+            o2[index++] = *b++;
+        o2[index] = '\0';
+    } else {    
+        o2[0] = '\0';
+    }
 }
 
 /* Check if name is reserved (opcode or register) */
@@ -207,7 +207,11 @@ void first_pass(const char *am)
     Word w;  /* the 24 bits word we are building */ 
     int headerIC; /* IC of the current instruction header word */
     long numeric_value; /* For storing parsed numbers */
+    const char *p;
+    const char *q;
+    int commas, has_comma;
     first_pass_errors = 0; /* reset error counter */
+
 
     src = fopen(am, "r");
     if (!src)
@@ -301,10 +305,30 @@ void first_pass(const char *am)
                 first_pass_errors++;
                 continue;
             }
+            p = body;
+            commas = 0;
+            while (*p && !isspace((unsigned char)*p)) ++p;      /* skip mnemonic */
+            while (*p &&  isspace((unsigned char)*p)) ++p;      /* skip spaces   */
+            while (*p && *p != ';') { if (*p == ',') ++commas; ++p; }
+            if (commas >= 2) {
+                printf("ERROR in line %d: extra operand \"%s\"\n", ln, line);
+                first_pass_errors++;
+                continue;
+            }
 
             split_ops(body, src_op, dst_op);
+            q = body; 
+            has_comma = 0;
+            while (*q && !isspace((unsigned char)*q)) ++q;      /* skip mnemonic */
+            while (*q &&  isspace((unsigned char)*q)) ++q;
+            while (*q && *q != ';') { if (*q == ',') { has_comma = 1; break; } ++q; }
 
-            if (op->nOperands == 1 && dst_op[0] == '\0')
+            if (has_comma && dst_op[0] == '\0') {
+                printf("ERROR in line %d: missing operand \"%s\"\n", ln, line);
+                first_pass_errors++;
+                continue;
+            }
+                    if (op->nOperands == 1 && dst_op[0] == '\0')
             {
                 strcpy(dst_op, src_op);
                 src_op[0] = '\0';
@@ -476,7 +500,7 @@ void first_pass(const char *am)
                     {
                         printf("ERROR: bad number in line %d: \"%s\"\n", ln, line);
                         first_pass_errors++;
-                        goto fail;
+                        break;
                     }
                     data[dw++] = (Word)(numeric_value & 0xFFFFFF);
                     ++DC;
@@ -496,7 +520,7 @@ void first_pass(const char *am)
                 {
                     printf("ERROR-  bad .string on line %d: \"%s\"\n", ln, line);
                     first_pass_errors++;
-                    goto fail;
+                    continue;
                 }
                 
                 for (char_ptr = open_quote + 1; char_ptr < close_quote; ++char_ptr)
@@ -578,9 +602,5 @@ void first_pass(const char *am)
     }
 
     return;
-
-fail:
-    first_pass_errors++;
-    fclose(src);
 }
 
