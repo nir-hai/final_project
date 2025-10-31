@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
+#include "placeholders.h"
 
 /* Word type matching first_pass.c */
 typedef unsigned long Word;
@@ -20,13 +20,6 @@ typedef unsigned long Word;
 /* ---- data exported by first_pass ---- */
 extern Word code[];   extern int cw;
 extern Word data[];   extern int dw;
-
-typedef struct { 
-    int wordIndex, instrIC, mode; 
-    char label[31]; 
-} Placeholder;
-extern Placeholder placeholders[];  
-extern int n_placeholders;
 
 /* ---- collect extern references ---- */
 typedef struct { 
@@ -237,7 +230,7 @@ void second_pass(const char *am_path)
         
         sym = find_symbol(ph->label);
         if (!sym) {
-            printf( "Error: undefined symbol \"%s\"\n", ph->label);
+            printf( "Error: undefined symbol \"%s\" (line %d)\n", ph->label, ph->line);
             second_pass_errors++;
             continue;
         }
@@ -256,7 +249,7 @@ void second_pass(const char *am_path)
             }
         } else if (ph->mode == 2) {      /* RELATIVE */
             if (sym->attr == 'E') {
-                printf( "Error: extern \"%s\" used with '&'\n", ph->label);
+                printf( "Error: extern \"%s\" used with '&' (l%d)\n", ph->label, ph->line);
                 second_pass_errors++;
                 continue;
             }

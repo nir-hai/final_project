@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "placeholders.h"
 
 /* ---------- Word type and masking ---------- */
 typedef unsigned long Word;
@@ -31,14 +32,6 @@ Word data[MAX_DATA];
 int dw = 0; /* data words        */
 
 /* ---------- placeholder list (shared with 2nd pass) ------------ */
-typedef struct
-{
-    int wordIndex;  /* index in code[]        */
-    int instrIC;    /* IC of header word      */
-    int mode;       /* 1 = DIR , 2 = REL      */
-    char label[31]; /* label (no &)           */
-} Placeholder;
-
 Placeholder placeholders[1000];
 int n_placeholders = 0;
 
@@ -451,6 +444,7 @@ void first_pass(const char *am)
                     strncpy(placeholders[n_placeholders].label, src_op, 30);
                 }
                 placeholders[n_placeholders].label[30] = '\0';
+                placeholders[n_placeholders].line = ln;
                 n_placeholders++;
             }
 
@@ -475,6 +469,7 @@ void first_pass(const char *am)
                     strncpy(placeholders[n_placeholders].label, dst_op, 30);
                 }
                 placeholders[n_placeholders].label[30] = '\0';
+                placeholders[n_placeholders].line = ln;
                 n_placeholders++;
             }
             IC = 100 + cw;
